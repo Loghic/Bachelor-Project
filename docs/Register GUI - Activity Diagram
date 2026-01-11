@@ -1,0 +1,128 @@
+@startuml Register GUI - Activity Diagram
+
+skinparam activityShape octagon
+
+title Register GUI - Continuous Read Activity\nCERN AMBER Experiment
+
+start
+
+:User clicks "Read Continuously";
+
+:Get selected interval from cbReadSpeed;
+note right
+  Options: 10ms, 20ms, 50ms,
+  100ms, 500ms, 1s, 2s, 3s,
+  1min, 2min
+end note
+
+if (dataTabSwitchedOnce?) then (no)
+    :switchToDataTab();
+    :dataTabSwitchedOnce = true;
+else (yes)
+endif
+
+:btnReadContinuously.setText("Stop Reading");
+:btnStop.setEnabled(true);
+
+:readingEnabled = true;
+:readCount = 0;
+:readRateTimer.start();
+
+partition "QtConcurrent::run() - Background Thread" #E1F5FE {
+    :Start loopTimer;
+
+    while (readingEnabled?) is (true)
+        if (loopTimer.elapsed() >= interval?) then (yes)
+            :loopTimer.restart();
+            :readCount++;
+
+            partition "QMetaObject::invokeMethod - Main Thread" #FFF3E0 {
+                :performRead(resetFilters=false,\nclearTreeBeforeRead=false);
+
+                partition "RegisterController::performRead()" #E8F5E9 {
+                    :Get selected device from dropdown;
+
+                    if (device in deviceInfoMap?) then (yes)
+                        :ensureCachedHw(deviceId);
+
+                        if (cachedHw exists && same device?) then (yes)
+                            :Reuse cached HwInterface;
+                        else (no)
+                            :Delete old cachedHw;
+                            :Build URI from DeviceInfo;
+                            note right
+                              chtcp: protocol://gateway:port?target=ip:port
+                              ipbusudp: protocol://ip:port
+                            end note
+                            :Create new HwInterface via\nConnectionManager::getDevice();
+                            :cachedDeviceId = deviceId;
+                        endif
+
+                        :readNodes(*cachedHw);
+
+                        partition "Batched Read" #FCE4EC {
+                            :Get all node names;
+
+                            :Cache metadata for new nodes;
+                            note right
+                              address, mask, permission
+                            end note
+
+                            fork
+                                :Queue all reads;
+                                note right
+                                  hw.getNode(node).read()
+                                  for each node
+                                end note
+                            fork again
+                                :Build values vector;
+                            end fork
+
+                            :hw.dispatch();
+                            note right
+                              Single IPbus transaction
+                              for all queued reads
+                            end note
+
+                            :Update tree via\nRegisterTreeViewHandler;
+                            note right
+                              Only update dec/hex columns
+                              if values changed
+                            end note
+                        }
+
+                    else (no)
+                        :Show warning "Device not found";
+                    endif
+                }
+
+                if (readRateTimer.elapsed() >= 1000ms?) then (yes)
+                    :Calculate reads per second;
+                    :Update lblReadCount;
+                    :readRateTimer.restart();
+                    :readCount = 0;
+                else (no)
+                endif
+            }
+
+        else (no)
+        endif
+
+        :QThread::msleep(1);
+        note right: Minimal sleep to prevent CPU spinning
+
+    endwhile (false)
+}
+
+:readingEnabled = false;
+:btnReadContinuously.setText("Read Continuously");
+:btnStop.setEnabled(false);
+
+if (User clicked "Stop"?) then (yes)
+    :switchToConnectionTab();
+else (no)
+endif
+
+stop
+
+@enduml
