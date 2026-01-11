@@ -1,0 +1,60 @@
+name: Generate PlantUML Diagrams
+
+on:
+  workflow_dispatch:  # Manual trigger
+  push:
+    paths:
+      - 'docs/diagrams/*.puml'
+    branches: [ main ]
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Java (required for PlantUML)
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Install Graphviz (for complex diagrams)
+      run: sudo apt-get update && sudo apt-get install -y graphviz
+
+    - name: Download PlantUML
+      run: |
+        mkdir -p ~/plantuml
+        curl -L -o ~/plantuml/plantuml.jar \
+          https://github.com/plantuml/plantuml/releases/download/v1.2024.7/plantuml-1.2024.7.jar
+
+    - name: Generate PNG diagrams
+      run: |
+        mkdir -p docs/diagrams/images
+        java -jar ~/plantuml/plantuml.jar -tpng -o images docs/diagrams/*.puml
+        echo "Generated PNG files:"
+        ls -la docs/diagrams/images/
+
+    - name: Generate SVG diagrams
+      run: |
+        java -jar ~/plantuml/plantuml.jar -tsvg -o images docs/diagrams/*.puml
+        echo "Generated SVG files:"
+        ls -la docs/diagrams/images/
+
+    - name: Commit and push generated images
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add docs/diagrams/images/
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "🔄 Auto-generate PlantUML diagrams [skip ci]"
+          git push
+        fi
