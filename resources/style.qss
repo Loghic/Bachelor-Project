@@ -1,0 +1,160 @@
+QWidget {
+    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: black;
+}
+
+QLineEdit {
+    border: 1px solid #a0a0a0;
+    border-radius: 6px;
+    padding: 5px;
+    background: white;
+    selection-background-color: #0078d7;
+    color: black;
+    min-height: 25px;
+}
+
+QLineEdit::placeholder {
+    color: #888;
+}
+
+LoginWindow {
+    padding: 10px;
+}
+
+QPushButton {
+    background-color: #0078d7;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-weight: bold;
+    min-height: 15px;
+}
+
+QPushButton:hover {
+    background-color: #005bb5;
+}
+
+QPushButton:pressed {
+    background-color: #004494;
+}
+
+QComboBox {
+    border: 1px solid #a0a0a0;
+    border-radius: 8px;
+    padding: 5px;
+    background: #f0f0f0;
+    color: #333333;
+    min-height: 20px;
+    font-size: 14px;
+}
+
+QComboBox QAbstractItemView {
+    border: 1px solid #a0a0a0;
+    background: white;
+    color: black;
+    min-height: 20px;
+}
+
+QComboBox::item:selected {
+    background-color: #0078d7;
+    color: white;
+}
+
+QComboBox::drop-down {
+    border: none;
+    background: transparent;
+    width: 25px;
+}
+
+QComboBox::down-arrow {
+    image: url(":/down_arrow.png");
+    min-width: 20px;
+    min-height: 20px;
+}
+
+QComboBox::down-arrow:hover {
+    image: url(":/down_arrow_hover.png");
+    min-width: 20px;
+    min-height: 20px;
+}
+
+QLabel {
+    font-weight: bold;
+    color: black;
+}
+
+QPushButton#btnCancel, QPushButton#btnLogout {
+        background-color: #c9302c;
+        color: white;
+}
+
+QPushButton#btnCancel:hover, QPushButton#btnLogout:hover {
+    background-color: #ac2925;
+}
+
+QLabel#lblLoggedIn {
+    font-weight: normal;
+}
+
+QGroupBox {
+        font-size: 14px;
+        font-weight: bold;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        margin-top: 10px;
+        padding: 10px;
+    }
+    QGroupBox::title {
+        subcontrol-origin: margin;
+        subcontrol-position: top left;
+        padding: 0 5px;
+        color: #2c3e50;
+    }
+
+QLineEdit#DeviceInfoField {
+    background: transparent;
+    border: none;
+    color: #555;
+    font-size: 13px;
+    selection-background-color: #cce5ff;
+    selection-color: #000;
+}
+
+QTreeWidget {
+    background-color: white;
+    alternate-background-color: #f0f0f0;
+    selection-background-color: #87cefa; /* light blue on selection */
+    selection-color: black;
+    font-size: 13px;
+}
+
+QTreeWidget::item {
+    padding: 4px;
+}
+
+QTreeWidget::item:selected {
+    background-color: #cceeff;
+}
+
+QHeaderView::section {
+    background-color: #e0e0e0;
+    padding: 4px;
+    border: 1px solid #d0d0d0;
+    font-weight: bold;
+}
+
+QDialog {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 15px;
+}
+
+QLabel#lblDialog {
+    margin-bottom: 3px;
+    font-weight: bold;
+    background-color: #f9f9f9;
+}
