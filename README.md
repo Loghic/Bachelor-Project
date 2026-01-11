@@ -36,6 +36,35 @@ The **AMBER** (Apparatus for Meson and Baryon Experimental Research) experiment 
 - μHAL (IPbus Software) library
 - qmake build system
 
+### μHAL Installation
+
+```bash
+# On CentOS/RHEL (CERN environment)
+yum install ipbus-software-uhal
+
+# Or build from source
+git clone https://github.com/ipbus/ipbus-software.git
+cd ipbus-software
+make
+```
+
+## Installation
+
+### Building from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/Loghic/Bachelor-Project.git
+cd Bachelor-Project
+
+# Build using qmake
+qmake RegisterEditor.pro
+make -j$(nproc)
+
+# Run the application
+./RegisterEditor
+```
+
 ## Project Structure
 
 ```
@@ -115,6 +144,27 @@ The application expects an XML connection file in μHAL format:
 |----------|------------|-------------|
 | IPbus UDP | `ipbusudp-2.0://ip:port` | Direct UDP connection |
 | ControlHub | `chtcp-2.0://gateway:port?target=ip:port` | Via ControlHub gateway |
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/new-feature`)
+3. Commit your changes (`git commit -am 'Add new feature'`)
+4. Push to the branch (`git push origin feature/new-feature`)
+5. Open a Pull Request
+
+## Architecture
+
+### Class Diagram
+![Class Diagram](docs/diagrams/images/class_diagram.png)
+
+### Component Diagram
+![Component Diagram](docs/diagrams/images/component_diagram.png)
+
+### Sequence Diagram
+![Sequence Diagram](docs/diagrams/images/sequence_diagram.png)
+
+For more diagrams, see the [docs/diagrams](docs/diagrams/) folder.
 
 ## Related Projects
 
