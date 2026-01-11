@@ -89,6 +89,8 @@ Bachelor-Project/
 ├── resources/
 │   ├── style.qss              # Application stylesheet
 │   └── resources.qrc          # Qt resource file
+├── docs/
+│   └── diagrams/              # UML diagrams (PlantUML)
 ├── RegisterEditor.pro         # Qt project file
 └── README.md
 ```
@@ -145,26 +147,41 @@ The application expects an XML connection file in μHAL format:
 | IPbus UDP | `ipbusudp-2.0://ip:port` | Direct UDP connection |
 | ControlHub | `chtcp-2.0://gateway:port?target=ip:port` | Via ControlHub gateway |
 
-## Contributing
+---
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/new-feature`)
-3. Commit your changes (`git commit -am 'Add new feature'`)
-4. Push to the branch (`git push origin feature/new-feature`)
-5. Open a Pull Request
-
-## Architecture
+## Architecture & UML Diagrams
 
 ### Class Diagram
+Shows the structure of all classes, their attributes, methods, and relationships.
+
 ![Class Diagram](docs/diagrams/images/class_diagram.png)
 
 ### Component Diagram
+Illustrates the high-level component architecture and dependencies.
+
 ![Component Diagram](docs/diagrams/images/component_diagram.png)
 
 ### Sequence Diagram
+Demonstrates the flow of read/write operations between components.
+
 ![Sequence Diagram](docs/diagrams/images/sequence_diagram.png)
 
-For more diagrams, see the [docs/diagrams](docs/diagrams/) folder.
+### Use Case Diagram
+Shows user roles (Physicist, DAQ Engineer, System Admin) and their interactions.
+
+![Use Case Diagram](docs/diagrams/images/usecase_diagram.png)
+
+### State Diagram
+Depicts application states and transitions.
+
+![State Diagram](docs/diagrams/images/state_diagram.png)
+
+### Activity Diagram
+Details the continuous read operation flow with threading.
+
+![Activity Diagram](docs/diagrams/images/activity_diagram.png)
+
+---
 
 ## Related Projects
 
