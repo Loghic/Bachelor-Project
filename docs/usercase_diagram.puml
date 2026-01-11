@@ -1,0 +1,73 @@
+@startuml usecase_diagram
+
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+
+title Register GUI - Use Case Diagram\nCERN AMBER Experiment
+
+left to right direction
+
+actor "Physicist" as PHY #LightBlue
+actor "DAQ Engineer" as ENG #LightGreen
+actor "System Admin" as SYS #LightCoral
+
+rectangle "Register GUI System" {
+
+    package "Authentication" #F3E5F5 {
+        usecase "Login" as UC_LOGIN
+        usecase "Logout" as UC_LOGOUT
+    }
+
+    package "Device Management" #E1F5FE {
+        usecase "Load Connection XML" as UC_LOAD
+        usecase "Select Device" as UC_SELECT
+        usecase "View Device Info" as UC_INFO
+        usecase "Search Devices" as UC_SEARCH
+    }
+
+    package "Register Operations" #E8F5E9 {
+        usecase "Read Registers" as UC_READ
+        usecase "Continuous Read" as UC_CONT
+        usecase "Write Register" as UC_WRITE
+        usecase "Filter Registers" as UC_FILTER
+    }
+
+    package "View Controls" #FFF3E0 {
+        usecase "Zoom/Pan" as UC_ZOOM
+        usecase "Drag Devices" as UC_DRAG
+        usecase "Reset Layout" as UC_RESET
+    }
+
+    package "Settings" #FCE4EC {
+        usecase "Set Read Interval" as UC_INTERVAL
+        usecase "Save Positions" as UC_SAVE
+    }
+}
+
+PHY --> UC_LOGIN
+PHY --> UC_SELECT
+PHY --> UC_READ
+PHY --> UC_FILTER
+PHY --> UC_ZOOM
+
+ENG --> UC_LOGIN
+ENG --> UC_LOAD
+ENG --> UC_SELECT
+ENG --> UC_SEARCH
+ENG --> UC_READ
+ENG --> UC_CONT
+ENG --> UC_WRITE
+ENG --> UC_FILTER
+ENG --> UC_DRAG
+ENG --> UC_INTERVAL
+
+SYS --> UC_LOGIN
+SYS --> UC_LOAD
+SYS --> UC_RESET
+SYS --> UC_SAVE
+
+UC_READ ..> UC_SELECT : <<requires>>
+UC_WRITE ..> UC_SELECT : <<requires>>
+UC_CONT ..> UC_SELECT : <<requires>>
+
+@enduml

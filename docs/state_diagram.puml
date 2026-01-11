@@ -1,0 +1,87 @@
+@startuml state_diagram
+
+skinparam state {
+    BackgroundColor<<idle>> #E8F5E9
+    BackgroundColor<<reading>> #E1F5FE
+    BackgroundColor<<writing>> #FFF3E0
+    BackgroundColor<<e>> #FFCDD2
+}
+
+title Register GUI - State Diagram\nCERN AMBER Experiment
+
+[*] --> Login
+
+state Login {
+    [*] --> WaitingCredentials
+    WaitingCredentials --> Authenticating : Submit
+    Authenticating --> WaitingCredentials : Invalid
+    Authenticating --> [*] : Success
+}
+
+Login --> MainWindow : Authenticated
+
+state MainWindow {
+    [*] --> ConnectionTab
+
+    state ConnectionTab <<idle>> {
+        [*] --> NoDevice
+        NoDevice --> LoadingXML : Load XML
+        LoadingXML --> DevicesLoaded : Success
+        LoadingXML --> XMLError : Error
+        XMLError --> NoDevice : OK
+        DevicesLoaded --> DeviceSelected : Select
+        DeviceSelected --> DeviceSelected : Change selection
+    }
+
+    ConnectionTab --> DataTab : Read / Read Continuously
+
+    state DataTab {
+        [*] --> Idle
+
+        state Idle <<idle>>
+
+        state SingleRead <<reading>> {
+            [*] --> Clearing
+            Clearing --> Caching
+            Caching --> Queuing
+            Queuing --> Dispatching
+            Dispatching --> Updating
+            Updating --> [*]
+        }
+
+        state ContinuousRead <<reading>> {
+            [*] --> Waiting
+            Waiting --> Reading : Interval
+            Reading --> Displaying
+            Displaying --> Waiting
+        }
+
+        state Writing <<writing>> {
+            [*] --> Dialog
+            Dialog --> Validating : Write
+            Dialog --> [*] : Cancel
+            Validating --> Sending : Valid
+            Validating --> Dialog : Invalid
+            Sending --> Success
+            Sending --> Error : Exception
+            Success --> [*]
+            Error --> Dialog
+        }
+
+        Idle --> SingleRead : "Read"
+        SingleRead --> Idle : Done
+
+        Idle --> ContinuousRead : "Read Continuously"
+        ContinuousRead --> Idle : "Stop"
+
+        Idle --> Writing : Click writable
+        Writing --> Idle : Closed
+    }
+
+    DataTab --> ConnectionTab : Stop
+}
+
+MainWindow --> Login : Logout
+MainWindow --> [*] : Close
+
+@enduml

@@ -1,0 +1,75 @@
+@startuml activity_diagram
+
+title Register GUI - Continuous Read Activity\nCERN AMBER Experiment
+
+start
+
+:User clicks "Read Continuously";
+
+:Get interval from cbReadSpeed;
+
+if (dataTabSwitchedOnce?) then (no)
+    :switchToDataTab();
+    :dataTabSwitchedOnce = true;
+endif
+
+:readingEnabled = true;
+:readCount = 0;
+:readRateTimer.start();
+
+partition "Background Thread (QtConcurrent)" #E1F5FE {
+    :Start loopTimer;
+
+    while (readingEnabled?) is (true)
+        if (elapsed >= interval?) then (yes)
+            :loopTimer.restart();
+            :readCount++;
+
+            partition "Main Thread (invokeMethod)" #FFF3E0 {
+                :performRead(false, false);
+
+                partition "RegisterController" #E8F5E9 {
+                    :Get selected device;
+
+                    if (device valid?) then (yes)
+                        :ensureCachedHw();
+
+                        if (cache valid?) then (yes)
+                            :Reuse HwInterface;
+                        else (no)
+                            :Create new HwInterface;
+                        endif
+
+                        :readNodes();
+
+                        partition "Batched Read" #FCE4EC {
+                            :Queue all reads;
+                            :hw.dispatch();
+                            :Update tree;
+                        }
+                    else (no)
+                        :Show warning;
+                    endif
+                }
+
+                if (rateTimer >= 1s?) then (yes)
+                    :Calculate reads/sec;
+                    :Update label;
+                    :Reset counter;
+                endif
+            }
+        endif
+
+        :sleep(1ms);
+    endwhile (false)
+}
+
+:Reset UI;
+
+if (Stop clicked?) then (yes)
+    :switchToConnectionTab();
+endif
+
+stop
+
+@enduml

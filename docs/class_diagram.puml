@@ -1,0 +1,175 @@
+@startuml class_diagram
+
+skinparam classAttributeIconSize 0
+skinparam classFontStyle bold
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+title Register GUI - Class Diagram\nCERN AMBER Experiment
+
+package "Presentation Layer" #E1F5FE {
+    class MainWindow <<QWidget>> {
+        - tWidget: QTabWidget*
+        - wConnection: QWidget*
+        - wData: QWidget*
+        - diagramScene: QGraphicsScene*
+        - diagramView: DraggableView*
+        - tData: QTreeWidget*
+        - cbDeviceDropdown: QComboBox*
+        - cbReadSpeed: QComboBox*
+        - leXmlPathInput: QLineEdit*
+        - filterEdits: QVector<QLineEdit*>
+        - deviceItems: QMap<QString, ClickableRectItem*>
+        - deviceInfoMap: QMap<QString, DeviceInfo>
+        - deviceManager: DeviceManager
+        - registerController: RegisterController*
+        - readingEnabled: bool
+        - readFuture: QFuture<void>
+        --
+        + MainWindow(tabIndex: int, username: QString)
+        + ~MainWindow()
+        + selectDeviceFromScene(deviceId: QString): void
+        - setupMenuBar(): void
+        - setupConnectionTab(tabIndex: int): void
+        - setupDataTab(): void
+        - setupLoggedUser(): void
+        - setupDeviceInfo(): void
+        - loadDeviceListFromXml(): void
+        - performRead(resetFilters: bool, clearTree: bool): void
+        - toggleContinuousRead(): void
+        - stopContinuousRead(): void
+        - openWriteDialog(item: QTreeWidgetItem*): void
+        - filterDeviceDropdown(text: QString): void
+        # closeEvent(event: QCloseEvent*): void
+    }
+
+    class LoginWindow <<QDialog>> {
+        - leUsername: QLineEdit*
+        - lePasswordField: QLineEdit*
+        - btnLogin: QPushButton*
+        --
+        + LoginWindow(parent: QWidget*)
+        + getUsername(): QString
+        - attemptLogin(): void
+    }
+
+    class DraggableView <<QGraphicsView>> {
+        - isDragging: bool
+        - lastPos: QPoint
+        - scaleFactor: qreal
+        --
+        + DraggableView(scene: QGraphicsScene*)
+        # mousePressEvent(event: QMouseEvent*): void
+        # mouseMoveEvent(event: QMouseEvent*): void
+        # mouseReleaseEvent(event: QMouseEvent*): void
+        # wheelEvent(event: QWheelEvent*): void
+    }
+
+    class ClickableRectItem <<QGraphicsPathItem>> {
+        - m_deviceId: QString
+        - m_width: qreal
+        - m_height: qreal
+        - isSelected: bool
+        --
+        + ClickableRectItem(deviceId: QString, width: qreal, height: qreal)
+        + deviceId(): QString
+        + setSelectedStyle(selected: bool): void
+        # mousePressEvent(event: QGraphicsSceneMouseEvent*): void
+        # mouseReleaseEvent(event: QGraphicsSceneMouseEvent*): void
+        # hoverEnterEvent(event: QGraphicsSceneHoverEvent*): void
+        # hoverLeaveEvent(event: QGraphicsSceneHoverEvent*): void
+        --
+        <<signal>> deviceClicked(deviceId: QString)
+    }
+}
+
+package "Controller Layer" #FFF3E0 {
+    class RegisterController {
+        - parentWidget: QWidget*
+        - registerTreeViewHandler: RegisterTreeViewHandler*
+        - cachedHw: uhal::HwInterface*
+        - cachedDeviceId: QString
+        - nodeMetadataCache: QMap<std::string, NodeMetadata>
+        --
+        + RegisterController(parentWidget: QWidget*, tData: QTreeWidget*)
+        + ~RegisterController()
+        + readNodes(hw: uhal::HwInterface&): void
+        + writeNode(hw: uhal::HwInterface&, reg: QString, val: QString): void
+        + performRead(...): void
+        + openWriteDialog(...): void
+        - ensureCachedHw(deviceId: QString, ...): void
+    }
+
+    class RegisterTreeViewHandler {
+        + tData: QTreeWidget*
+        + nodeCache: QMap<QString, QTreeWidgetItem*>
+        --
+        + RegisterTreeViewHandler(tree: QTreeWidget*)
+        + populateTree(...): void
+        + filterTree(filters: QVector<QLineEdit*>): void
+        + onTreeItemChanged(item: QTreeWidgetItem*, column: int): void
+    }
+
+    struct NodeMetadata <<struct>> {
+        + address: uint32_t
+        + mask: uint32_t
+        + permission: int
+    }
+}
+
+package "Data Layer" #E8F5E9 {
+    class DeviceManager {
+        --
+        + loadDeviceListFromXml(...): bool
+        + groupAndSortDevices(...): QMap<QString, QList<DeviceEntry>>
+        + createDeviceBlock(...): ClickableRectItem*
+        + saveDevicePositions(...): void
+        + parseUri(uri: QString): DeviceInfo
+    }
+
+    struct DeviceInfo <<struct>> {
+        + connectionType: QString
+        + connectionVersion: QString
+        + gatewayHost: QString
+        + gatewayPort: int
+        + ip: QString
+        + port: int
+        + deviceXmlPath: QString
+        + uri: QString
+    }
+
+    struct DeviceEntry <<struct>> {
+        + id: QString
+        + uri: QString
+    }
+}
+
+package "Hardware Abstraction (μHAL)" #FCE4EC {
+    class "uhal::HwInterface" as HwInterface <<external>> {
+        + getNodes(): std::vector<std::string>
+        + getNode(id: std::string): Node&
+        + dispatch(): void
+    }
+
+    class "uhal::ConnectionManager" as ConnectionManager <<external>> {
+        + {static} getDevice(...): HwInterface
+    }
+}
+
+' Relationships
+MainWindow *-- DeviceManager
+MainWindow *-- RegisterController
+MainWindow *-- DraggableView
+MainWindow o-- "*" ClickableRectItem
+
+RegisterController *-- RegisterTreeViewHandler
+RegisterController --> HwInterface
+RegisterController *-- "*" NodeMetadata
+
+DeviceManager --> DeviceInfo
+DeviceManager --> ClickableRectItem
+
+ConnectionManager ..> HwInterface
+LoginWindow ..> MainWindow
+
+@enduml

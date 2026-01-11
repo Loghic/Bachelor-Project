@@ -1,0 +1,84 @@
+@startuml component_diagram
+
+skinparam componentStyle uml2
+skinparam packageStyle rectangle
+
+title Register GUI - Component Architecture\nCERN AMBER Experiment
+
+package "Register GUI Application" {
+
+    package "Presentation Layer" #E1F5FE {
+        component [MainWindow] as MW
+        component [LoginWindow] as LW
+        component [DraggableView] as DV
+        component [ClickableRectItem] as CRI
+        component [WriteDialog] as WD
+    }
+
+    package "Controller Layer" #FFF3E0 {
+        component [RegisterController] as RC
+        component [RegisterTreeViewHandler] as RTH
+    }
+
+    package "Data Layer" #E8F5E9 {
+        component [DeviceManager] as DM
+        component [DeviceInfo] as DI
+        component [NodeMetadata] as NM
+    }
+
+    package "Qt Framework" #F3E5F5 {
+        component [QGraphicsScene] as QGS
+        component [QTreeWidget] as QTW
+        component [QSettings] as QS
+        component [QtConcurrent] as QTC
+    }
+}
+
+package "External Libraries" #FFEBEE {
+    component [μHAL Library] as UHAL {
+        component [ConnectionManager] as CM
+        component [HwInterface] as HI
+    }
+}
+
+package "Hardware" #E0E0E0 {
+    component [ControlHub] as CH
+    component [FPGA Device] as FPGA
+}
+
+package "Configuration" #FFF8E1 {
+    database [Connection XML] as CXML
+    database [Address Table] as AXML
+    database [QSettings Store] as QSET
+}
+
+' Connections
+LW ..> MW : creates
+MW --> DV
+MW --> CRI
+MW --> WD
+
+MW --> RC
+RC --> RTH
+
+MW --> DM
+DM --> DI
+RC --> NM
+
+DV --> QGS
+RTH --> QTW
+DM --> QS
+MW --> QTC
+
+RC --> UHAL
+CM --> HI
+
+DM --> CXML
+UHAL --> AXML
+QS --> QSET
+
+HI --> CH : chtcp
+HI --> FPGA : ipbusudp
+CH --> FPGA
+
+@enduml

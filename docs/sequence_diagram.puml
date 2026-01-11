@@ -1,0 +1,111 @@
+@startuml sequence_diagram
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+title Register GUI - Read/Write Operations\nCERN AMBER Experiment
+
+actor User
+participant "MainWindow" as MW
+participant "RegisterController" as RC
+participant "RegisterTreeViewHandler" as RTH
+participant "uhal::HwInterface" as HW
+participant "FPGA\n(IPbus)" as FPGA
+
+== Single Read Operation ==
+
+User -> MW : Click "Read" button
+activate MW
+
+MW -> MW : switchToDataTab()
+MW -> RC : performRead(resetFilters=true,\nclearTree=true)
+activate RC
+
+RC -> RTH : tData->clear()
+RC -> RC : nodeMetadataCache.clear()
+
+RC -> RC : ensureCachedHw(deviceId)
+activate RC
+alt Cache miss or device changed
+    RC -> HW ** : ConnectionManager::getDevice()
+end
+deactivate RC
+
+RC -> RC : readNodes(*cachedHw)
+activate RC
+
+RC -> HW : getNodes()
+HW --> RC : vector<string> nodes
+
+loop For each node
+    RC -> HW : getNode(node).read()
+    note right: Queue read\n(no network yet)
+end
+
+RC -> HW : dispatch()
+activate HW
+HW -> FPGA : IPbus batched reads
+FPGA --> HW : All register values
+deactivate HW
+
+loop For each node
+    RC -> RTH : populateTree(node, addr, dec, hex, mask, perm)
+end
+
+deactivate RC
+RC --> MW : Complete
+deactivate RC
+
+MW --> User : Display registers
+deactivate MW
+
+== Write Operation ==
+
+User -> MW : Click writable cell
+activate MW
+
+MW -> RC : openWriteDialog(item)
+activate RC
+
+RC -> RC : Create QDialog
+
+User -> RC : Enter value, click "Write"
+
+RC -> HW : getNode(reg).write(value)
+RC -> HW : dispatch()
+activate HW
+HW -> FPGA : IPbus write
+FPGA --> HW : ACK
+deactivate HW
+
+RC -> RTH : Update tree item
+RC --> User : "Write Successful"
+deactivate RC
+deactivate MW
+
+== Continuous Reading ==
+
+User -> MW : Click "Read Continuously"
+activate MW
+
+MW -> MW : readingEnabled = true
+MW -> MW : QtConcurrent::run()
+activate MW #LightBlue
+
+loop While readingEnabled
+    MW -> MW : Wait interval
+    MW -> RC : performRead(false, false)
+    activate RC
+    RC -> HW : dispatch()
+    RC -> RTH : Update values
+    deactivate RC
+    MW -> MW : Update reads/sec
+end
+
+deactivate MW
+
+User -> MW : Click "Stop"
+MW -> MW : readingEnabled = false
+deactivate MW
+
+@enduml
